@@ -4,39 +4,152 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>絕景旅遊 | 日本極致 7 天 6 夜行程專注者</title>
-    <!-- 引入外部 CDN -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- Lucide Icons & PDF Engine -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; -webkit-font-smoothing: antialiased; }
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slide-in-right { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
-        .animate-slide-in { animation: slide-in-right 0.5s ease-out forwards; }
-        .no-print { @media print { display: none !important; } }
-        /* 確保 PDF 內容渲染正常 */
-        #itinerary-pdf-content { color: #000 !important; background: #fff !important; }
-    </style>
+    <!-- 引入外部 CSS 檔案 -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-white text-gray-900">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo } = React;
 
-        // --- 1. 基礎 UI 組件 ---
+        // --- 1. 靜態數據庫 ---
+
+        const agencyInfo = {
+            name: "絕景旅遊 Superb Travel",
+            phone: "02-2500-1234",
+            email: "service@superbtravel.tw",
+            address: "台北市中山區南京東路三段 100 號 5 樓",
+            hours: "週一至週五 09:00 - 18:30",
+            faq: [
+                { q: "行程可以客製化嗎？", a: "沒問題！我們可以根據您的預算調整餐飲、飯店等級或行程比例。" },
+                { q: "導遊會說中文嗎？", a: "我們保證安排具備 10 年以上經驗的專業在地中文導遊。" },
+                { q: "PDF 行程表如何使用？", a: "在詳情頁點擊「導出 PDF」，檔案將自動下載，供您離線查看。" }
+            ]
+        };
+
+        const travelPackages = [
+            {
+                id: "hokkaido",
+                name: "北海道極致食尚之旅",
+                tag: "老饕推薦",
+                icon: "Sprout",
+                banner: "北海道.jpg",
+                description: "北國大地產地直送海鮮，體驗小樽、函館與登別溫泉的極致浪漫。",
+                price: "TWD 55,000 起",
+                itinerary: [
+                    {
+                        day: 1, title: "抵達札幌：北國之味開啟", location: "札幌",
+                        roadmap: [{ time: "11:00", event: "機場專車接機" }, { time: "18:00", event: "成吉思汗烤羊肉晚宴" }],
+                        desc: "體驗札幌開拓史。首日品嚐正宗烤羊肉。",
+                        gourmet: [{ name: "成吉思汗 だるま", type: "名店", popularDishes: ["特選烤羊肉", "自家製泡菜"], contact: { address: "札幌市中央区南5条西4", phone: "011-552-6013" }, images: ["https://images.unsplash.com/photo-1529692236671-f1f6e9481bfa?auto=format&fit=crop&w=800&q=80"] }],
+                        spots: [{ name: "札幌電視塔", type: "地標" }],
+                        gifts: [{ name: "六花亭 奶油餅乾", desc: "北海道代名詞伴手禮" }],
+                        hotel: { name: "JR Tower Hotel Nikko Sapporo", image: "https://images.unsplash.com/photo-1551882547-ff43c63faf76?auto=format&fit=crop&w=1000&q=80", website: "https://www.jrhotels.co.jp/sapporo/" }
+                    },
+                    {
+                        day: 2, title: "浪漫小樽：硝子之夢", location: "小樽",
+                        roadmap: [{ time: "10:00", event: "運河散策" }, { time: "16:00", event: "音樂盒堂體驗" }],
+                        desc: "煤油燈下的浪漫情調。",
+                        gourmet: [{ name: "政壽司", type: "名店", popularDishes: ["大極上壽司"], contact: { address: "小樽市花園1-1-1", phone: "0134-23-0011" } }],
+                        spots: [{ name: "小樽運河", type: "景觀" }],
+                        gifts: [{ name: "LeTAO 起司蛋糕", desc: "入口即化" }],
+                        hotel: { name: "藏群", website: "https://www.kuramure.com/en/" }
+                    },
+                    { day: 3, title: "函館夜景：世界三大美景", location: "函館", roadmap: [{ time: "19:00", event: "纜車賞夜景" }], desc: "蝴蝶灣璀璨夜色。", gourmet: [{ name: "Lucky Pierrot", type: "在地", popularDishes: ["中華雞肉漢堡"], contact: { address: "函館市末広町", phone: "0138-23-2211" } }], spots: [{ name: "函館展望台", type: "必看" }], gifts: [{ name: "乳酪歐姆蕾", desc: "綿密口感" }], hotel: { name: "La Vista Hakodate Bay", website: "https://www.hotespa.net/hotels/lahate/" } },
+                    { day: 4, title: "朝市鮮味與大沼森林", location: "大沼", roadmap: [{ time: "08:00", event: "朝市釣烏賊" }], gourmet: [{ name: "きくよ食堂", type: "名店", popularDishes: ["三色巴丼"], contact: { address: "函館朝市", phone: "0138-xxx" } }], spots: [{ name: "大沼公園", type: "自然" }], gifts: [{ name: "魷魚飯", desc: "地道特產" }], hotel: { name: "La Vista Hakodate Bay", website: "https://www.hotespa.net/hotels/lahate/" } },
+                    { day: 5, title: "登別地獄：震撼地熱", location: "登別", roadmap: [{ time: "10:30", event: "前往登別" }, { time: "14:00", event: "地獄谷導覽" }], gourmet: [{ name: "味の蔵", type: "特色", popularDishes: ["味噌拉麵"], contact: { address: "登別溫泉街", phone: "0143-xxx" } }], spots: [{ name: "地獄谷", type: "景觀" }], gifts: [{ name: "溫泉粉", desc: "把名湯帶回家" }], hotel: { name: "第一瀧本館", website: "https://takimotokan.jp/" } },
+                    { day: 6, title: "洞爺湖畔：火山與花火", location: "洞爺湖", roadmap: [{ time: "20:30", event: "湖上花火" }], gourmet: [{ name: "望羊蹄", type: "老店", popularDishes: ["漢堡排"], contact: { address: "洞爺湖", phone: "0142-75-2311" } }], spots: [{ name: "有珠山", type: "景觀" }], gifts: [{ name: "若狹薯", desc: "傳統和菓子" }], hotel: { name: "KO NO UTA", website: "https://www.konouta.com/" } },
+                    { day: 7, title: "賦歸：最後採買", location: "機場", roadmap: [{ time: "10:00", event: "機場伴手禮" }], gourmet: [{ name: "一幻拉麵", type: "機場", popularDishes: ["鮮蝦拉麵"], contact: { address: "機場3F", phone: "0123-45-6789" } }], spots: [{ name: "巧克力世界", type: "購物" }], gifts: [{ name: "生巧克力", desc: "機場限定" }], hotel: null }
+                ]
+            },
+            {
+                id: "classic",
+                name: "經典雙城文化之旅",
+                tag: "最熱門",
+                icon: "Navigation",
+                banner: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+                description: "東京與關西的完美結合，橫跨日本古今縮影，全程專業中文導覽。",
+                price: "TWD 45,800 起",
+                itinerary: Array.from({length: 7}).map((_, i) => ({
+                    day: i + 1, title: i === 0 ? "東京抵達" : i === 2 ? "前往古都" : `文化巡禮 Day ${i+1}`, location: i < 3 ? "東京" : "關西",
+                    roadmap: [{ time: "09:00", event: "導覽集合" }, { time: "18:00", event: "自由時間" }],
+                    desc: "深度體驗繁華與禪意。",
+                    gourmet: [{ name: "在地名店", type: "精選", popularDishes: ["特色定食"], contact: { address: "市中心", phone: "洽導遊" } }],
+                    spots: [{ name: "歷史地標", type: "地標" }],
+                    gifts: [{ name: "限定伴手禮", desc: "精美好禮" }],
+                    hotel: i < 6 ? { name: "高級五星飯店", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80", website: "https://www.hyatt.com/zh-HK/hotel/japan/park-hyatt-tokyo/tyoph" } : null
+                }))
+            },
+            {
+                id: "ski",
+                name: "長野粉雪滑雪盛宴",
+                tag: "冬季限定",
+                icon: "Snowflake",
+                banner: "https://images.unsplash.com/photo-1485594050903-8e8ee7b071a8?auto=format&fit=crop&w=1200&q=80",
+                description: "在白馬雪場體驗極致粉雪與豪華溫泉，配備專業教練教學。",
+                price: "TWD 58,000 起",
+                itinerary: Array.from({length: 7}).map((_, i) => ({
+                    day: i + 1, title: `粉雪挑戰 Day ${i+1}`, location: "長野",
+                    roadmap: [{ time: "09:00", event: "滑雪教學" }, { time: "16:30", event: "名湯放鬆" }],
+                    desc: "滑雪者的夢幻天堂。",
+                    gourmet: [{ name: "信州燒肉屋", type: "必吃", popularDishes: ["厚切牛舌"], contact: { address: "白馬村", phone: "0261-xxx" } }],
+                    spots: [{ name: "展望台", type: "運動" }],
+                    gifts: [{ name: "蘋果系列點心", desc: "在地盛產" }],
+                    hotel: i < 6 ? { name: "五星飯店", image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1000&q=80", website: "https://www.tokyuhotelsjapan.com/global/hakuba-h/" } : null
+                }))
+            },
+            {
+                id: "park",
+                name: "全境主題樂園狂歡",
+                tag: "親子冒險",
+                icon: "Ticket",
+                banner: "https://images.unsplash.com/photo-1542332213-31f87348057f?auto=format&fit=crop&w=1200&q=80",
+                description: "收集迪士尼與環球影城，打造完美的童話冒險體驗。",
+                price: "TWD 52,500 起",
+                itinerary: Array.from({length: 7}).map((_, i) => ({
+                    day: i + 1, title: i < 3 ? "迪士尼夢幻" : "USJ 英雄時刻", location: i < 3 ? "東京" : "大阪",
+                    roadmap: [{ time: "08:00", event: "提前入園" }, { time: "19:00", event: "夜間表演" }],
+                    desc: "為童心打造的奇幻旅程。",
+                    gourmet: [{ name: "主題餐廳", type: "特色", popularDishes: ["造型餐點"], contact: { address: "園區內", phone: "無" } }],
+                    spots: [{ name: "沉浸式園區", type: "地標" }],
+                    gifts: [{ name: "限定髮箍", desc: "獨家限量" }],
+                    hotel: i < 6 ? { name: "官方直營飯店", image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1000&q=80", website: "https://www.tokyodisneyresort.jp/tc/hotel/tdh.html" } : null
+                }))
+            },
+            {
+                id: "kyushu",
+                name: "九州溫泉與鐵道小鎮",
+                tag: "深度慢活",
+                icon: "Palmtree",
+                banner: "https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=1200&q=80",
+                description: "體驗別府地獄、由布院名湯，搭乘九州特色景觀列車遊覽。",
+                price: "TWD 42,000 起",
+                itinerary: Array.from({length: 7}).map((_, i) => ({
+                    day: i + 1, title: `九州慢活 Day ${i+1}`, location: "別府",
+                    roadmap: [{ time: "10:00", event: "景觀列車體驗" }, { time: "15:00", event: "溫泉巡禮" }],
+                    desc: "療癒身心的溫泉之旅。",
+                    gourmet: [{ name: "地獄蒸食堂", type: "特色", popularDishes: ["海鮮盛合"], contact: { address: "別府市", phone: "0977-xxx-xxx" } }],
+                    spots: [{ name: "金鱗湖", type: "美景" }],
+                    gifts: [{ name: "明太子禮盒", desc: "博多特產" }],
+                    hotel: i < 6 ? { name: "高級溫泉渡假村", image: "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1000&q=80", website: "https://suginoi.orixhotelsandresorts.com/" } : null
+                }))
+            }
+        ];
+
+        // --- 2. 核心元件 ---
 
         const Icon = ({ name, size = 24, className = "" }) => {
-            useEffect(() => {
-                if (window.lucide) window.lucide.createIcons();
-            }, [name]);
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
             return <i data-lucide={name.toLowerCase()} style={{ width: size, height: size }} className={className}></i>;
         };
 
@@ -51,146 +164,321 @@
                             <p className="text-[10px] font-black uppercase tracking-[0.2em]">影像載入中...</p>
                         </div>
                     ) : (
-                        <img 
-                            src={src} 
-                            alt={alt} 
-                            className="w-full h-full object-cover transition-all duration-1000 hover:scale-105" 
-                            onError={() => setError(true)} 
-                            loading="lazy" 
-                        />
+                        <img src={src} alt={alt} className="w-full h-full object-cover transition-all duration-1000 hover:scale-105" onError={() => setError(true)} loading="lazy" />
                     )}
                 </div>
             );
         };
 
-        // --- 2. 行程與公司數據 ---
+        // --- 3. 頁面視圖組件 ---
 
-        const agencyInfo = {
-            name: "絕景旅遊 Superb Travel",
-            phone: "02-2500-1234",
-            email: "service@superbtravel.tw",
-            address: "台北市中山區南京東路三段 100 號 5 樓",
-            hours: "週一至週五 09:00 - 18:30",
-            faq: [
-                { q: "行程可以根據我的預算調整嗎？", a: "沒問題！我們可以根據您的預算調整餐飲、飯店等級或行程比例。" },
-                { q: "如何索取 PDF 行程表？", a: "在每個行程詳情頁點擊「導出 PDF」，存入手機即可隨時查看。" },
-                { q: "是否有隨團醫護保險？", a: "全行程包含 500 萬旅遊責任險及當地意外醫療實支實付保險。" }
-            ]
+        const Navbar = ({ setCurrentView, scrolled, currentView, setIsSidebarOpen }) => (
+            <nav className={`fixed w-full z-50 transition-all duration-500 no-print ${scrolled || currentView !== 'home' ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5 text-white'}`}>
+                <div className="container mx-auto px-6 flex justify-between items-center">
+                    <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => setCurrentView('home')}>
+                        <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg transition-all group-hover:rotate-12"><Icon name="Compass" size={22} className="text-white" /></div>
+                        <span className={`text-2xl font-black tracking-tighter ${scrolled || currentView !== 'home' ? 'text-gray-900' : 'text-white'}`}>絕景旅遊</span>
+                    </div>
+                    <div className="flex items-center space-x-8 font-black text-xs uppercase tracking-widest">
+                        <div className="hidden md:flex space-x-10">
+                            <button onClick={() => setCurrentView('home')} className="hover:text-red-500 transition-colors">首頁探索</button>
+                            <button onClick={() => { setCurrentView('home'); setTimeout(() => document.getElementById('packages')?.scrollIntoView({behavior:'smooth'}), 100); }} className="hover:text-red-500 transition-colors">主題套餐</button>
+                        </div>
+                        <button onClick={() => setIsSidebarOpen(true)} className={`p-2.5 bg-gray-100 rounded-full text-gray-900 hover:bg-red-600 hover:text-white transition-all`} title="公司資訊">
+                            <Icon name="Info" size={24} />
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        );
+
+        const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, setCurrentView }) => (
+            <div className={`fixed inset-0 z-[100] transition-all duration-500 ${isSidebarOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}>
+               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+               <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-500 transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                  <div className="p-10 h-full flex flex-col font-sans text-gray-900 text-left">
+                     <div className="flex justify-between items-center mb-12">
+                        <h3 className="text-3xl font-black uppercase tracking-tighter">公司資訊</h3>
+                        <button onClick={() => setIsSidebarOpen(false)} className="p-3 bg-gray-100 rounded-full hover:bg-red-600 hover:text-white transition-all"><Icon name="X" size={24} /></button>
+                     </div>
+                     <div className="space-y-10 flex-1 overflow-y-auto pr-4 scrollbar-hide">
+                        <section className="space-y-4">
+                           <h4 className="text-sm font-black uppercase text-red-600 tracking-[0.3em]">聯絡窗口</h4>
+                           <div className="space-y-4 font-bold text-gray-700">
+                              <p className="flex items-center"><Icon name="Phone" size={18} className="mr-4 text-red-500" /> {agencyInfo.phone}</p>
+                              <p className="flex items-center"><Icon name="Mail" size={18} className="mr-4 text-red-500" /> {agencyInfo.email}</p>
+                              <p className="flex items-start"><Icon name="MapPin" size={18} className="mr-4 text-red-500 mt-1" /> {agencyInfo.address}</p>
+                           </div>
+                        </section>
+                        <section className="space-y-6">
+                           <h4 className="text-sm font-black uppercase text-red-600 tracking-[0.3em]">常見問題 FAQ</h4>
+                           {agencyInfo.faq.map((f, i) => (
+                             <div key={i} className="p-6 bg-gray-50 rounded-3xl space-y-2"><p className="font-black text-gray-900 leading-tight">Q: {f.q}</p><p className="text-sm text-gray-500 font-medium">{f.a}</p></div>
+                           ))}
+                        </section>
+                     </div>
+                  </div>
+               </div>
+            </div>
+        );
+
+        const HomeView = ({ navigateToDetail }) => (
+            <div className="animate-fade-in font-sans">
+                <section className="relative h-[85vh] flex items-center justify-center bg-gray-900 overflow-hidden no-print">
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-gray-900 z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80" className="w-full h-full object-cover scale-105" alt="Japan" />
+                    </div>
+                    <div className="relative z-20 text-center px-6 max-w-5xl text-white">
+                        <div className="inline-block bg-red-600 px-6 py-2 rounded-full text-[10px] font-black mb-8 tracking-[0.3em] shadow-2xl uppercase">Expert Led 7-Day Journeys</div>
+                        <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tighter uppercase font-sans">日本，<br/><span className="text-red-500 underline decoration-4 underline-offset-8">不只是旅行</span></h1>
+                        <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto font-medium leading-relaxed">專業領隊。我們為您提供 7 天完整攻略、飯店官網連結與 PDF 一鍵導出服務。打造您的極致回憶。</p>
+                        <div className="flex justify-center"><div className="animate-bounce opacity-50"><Icon name="ChevronDown" size={32} /></div></div>
+                    </div>
+                </section>
+                <section id="packages" className="py-32 bg-gray-50 px-6 no-print text-gray-900 text-center">
+                    <div className="container mx-auto text-center mb-20 font-black uppercase text-4xl">嚴選五大主題套餐</div>
+                    <div className="container mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                        {travelPackages.map((pkg) => (
+                            <div key={pkg.id} onClick={() => navigateToDetail(pkg)} className="group cursor-pointer bg-white rounded-[3rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 font-sans text-left">
+                                <SafeImage src={pkg.id === "hokkaido" ? "https://images.unsplash.com/photo-1549114030-4b210875620c?auto=format&fit=crop&w=800&q=80" : pkg.banner} alt={pkg.name} className="h-64" />
+                                <div className="p-10 relative">
+                                    <div className="absolute -top-8 left-8 z-20"><span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-red-600 text-white shadow-sm font-sans">{pkg.tag}</span></div>
+                                    <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm"><Icon name={pkg.icon} /></div>
+                                    <h3 className="text-2xl font-black mb-4 uppercase">{pkg.name}</h3>
+                                    <p className="text-gray-500 text-sm mb-8 leading-relaxed line-clamp-2 font-medium">{pkg.description}</p>
+                                    <div className="flex justify-between items-center border-t border-gray-100 pt-8 font-black">
+                                        <span className="text-red-600 font-sans font-black">{pkg.price}</span>
+                                        <span className="text-xs uppercase tracking-widest text-gray-400 group-hover:text-red-600 font-sans">查看詳情 <Icon name="ChevronRight" size={14} className="inline ml-1" /></span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </div>
+        );
+
+        const GalleryView = ({ galleryItem, setCurrentView }) => (
+            <div className="pt-32 min-h-screen bg-gray-950 text-white animate-fade-in pb-24 px-6 font-sans">
+                <div className="container mx-auto py-12">
+                    <button onClick={() => setCurrentView('detail')} className="flex items-center text-gray-400 hover:text-white mb-12 font-black text-xs uppercase transition-all tracking-widest"><Icon name="ArrowLeft" size={20} className="mr-3" /> 返回行程表</button>
+                    <div className="grid lg:grid-cols-2 gap-16 items-start text-left">
+                        <div className="space-y-12">
+                            <div>
+                                <span className="inline-block px-4 py-1.5 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest mb-6 font-sans">{galleryItem?.type || "精選資訊"}</span>
+                                <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-8 text-white">{galleryItem?.name}</h2>
+                                <p className="text-xl text-gray-400 leading-relaxed font-medium mb-12 font-sans">{galleryItem?.desc || "體驗在地精華與細膩文化。"}</p>
+                                {galleryItem?.contact && (
+                                    <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] space-y-6">
+                                       <h4 className="text-xs font-black uppercase tracking-[0.4em] text-red-500 font-sans">聯絡與導航資訊</h4>
+                                       <div className="flex items-start space-x-4 text-sm font-bold text-gray-300 font-sans"><Icon name="MapPin" size={22} className="text-gray-500" /><p>{galleryItem.contact.address}</p></div>
+                                       <div className="flex items-center space-x-4 text-sm font-bold text-gray-300 font-sans"><Icon name="Phone" size={22} className="text-gray-500" /><p>{galleryItem.contact.phone}</p></div>
+                                    </div>
+                                )}
+                            </div>
+                            {galleryItem?.popularDishes && (
+                                <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] font-sans">
+                                   <h4 className="flex items-center text-xl font-black uppercase tracking-widest mb-8 text-orange-500 font-sans"><Icon name="ChefHat" className="mr-3" /> 人氣必點餐點</h4>
+                                   <div className="space-y-4 font-bold text-lg text-gray-200">
+                                      {galleryItem.popularDishes.map((dish, i) => (
+                                        <div key={i} className="flex items-center space-x-4 font-sans"><div className="w-2 h-2 rounded-full bg-orange-500"></div><span className="font-sans">{dish}</span></div>
+                                      ))}
+                                   </div>
+                                </div>
+                            )}
+                            <button className="flex items-center space-x-4 p-6 bg-red-600 text-white rounded-[2rem] w-full hover:bg-red-700 transition-all font-black uppercase tracking-widest font-sans"><Icon name="Instagram" /><span>在 Instagram 查看實拍</span></button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-6">
+                           {galleryItem?.images?.map((img, i) => (
+                             <div key={i} className="rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 aspect-video"><img src={img} className="w-full h-full object-cover" alt="Ref" /></div>
+                           ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const DetailView = ({ selectedPkg, activeDay, setActiveDay, setCurrentView, openGallery, handleExportPDF, isExporting }) => {
+            const dayData = selectedPkg?.itinerary?.[activeDay];
+            if (!dayData) return null;
+
+            return (
+                <div className="pt-24 min-h-screen bg-white animate-fade-in pb-24 font-sans px-6 text-gray-900 font-sans">
+                    <div className="container mx-auto py-8 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-100 mb-12 gap-4 no-print text-gray-900 font-sans">
+                        <button onClick={() => setCurrentView('home')} className="flex items-center text-gray-500 hover:text-red-600 transition-all font-black text-xs uppercase tracking-widest font-sans"><Icon name="ArrowLeft" size={18} className="mr-3" /> 返回列表</button>
+                        <div className="flex items-center space-x-4">
+                            <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center px-6 py-3 bg-gray-900 text-white rounded-full font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg active:scale-95 disabled:opacity-50 font-sans">
+                                {isExporting ? <Icon name="Loader2" className="mr-2 animate-spin" size={16} /> : <Icon name="FileDown" size={16} className="mr-2" />}
+                                導出 PDF 行程手冊
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* PDF HIDDEN CONTENT */}
+                    <div id="itinerary-pdf-content" style={{ position: 'absolute', top: 0, left: '-9999px', width: '800px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'sans-serif' }}>
+                         <div style={{ borderBottom: '10px solid #DC2626', paddingBottom: '30px', marginBottom: '40px', textAlign: 'center' }}>
+                            <h1 style={{ fontSize: '48px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '10px', color: '#000' }}>{agencyInfo.name} | 行程手冊</h1>
+                            <p style={{ fontSize: '20px', color: '#666', fontWeight: 'bold' }}>{selectedPkg?.name} · 7天6夜完整攻略</p>
+                         </div>
+                         {selectedPkg?.itinerary.map((day, idx) => (
+                           <div key={idx} style={{ pageBreakInside: 'avoid', marginBottom: '50px', borderBottom: '3px solid #f0f0f0', paddingBottom: '50px' }}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '30px', marginBottom: '30px' }}>
+                                 <span style={{ fontSize: '64px', fontWeight: '900', color: '#DC2626' }}>D{day.day}</span>
+                                 <h3 style={{ fontSize: '36px', fontWeight: '900', color: '#000' }}>{day.title}</h3>
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '40px' }}>
+                                 <div style={{ backgroundColor: '#fdfdfd', border: '1px solid #eee', padding: '30px', borderRadius: '30px' }}>
+                                    <h4 style={{ fontSize: '16px', fontWeight: '900', borderBottom: '2px solid #DC2626', display: 'inline-block', paddingBottom: '5px', marginBottom: '25px' }}>導覽路徑</h4>
+                                    {day.roadmap?.map((r, ri) => (
+                                      <div key={ri} style={{ display: 'flex', marginBottom: '20px' }}><span style={{ fontWeight: '900', width: '80px', color: '#DC2626', fontSize: '18px' }}>{r.time}</span><span style={{ fontWeight: '700', flex: 1, fontSize: '18px' }}>{r.event}</span></div>
+                                    ))}
+                                 </div>
+                                 <div>
+                                    {day.hotel && <div style={{ backgroundColor: '#111', color: '#fff', padding: '25px', borderRadius: '30px', marginBottom: '30px' }}><h4 style={{ fontSize: '12px', fontWeight: '900', color: '#DC2626', marginBottom: '10px' }}>下榻飯店</h4><p style={{ fontSize: '20px', fontWeight: '900' }}>{day.hotel.name}</p></div>}
+                                    <div style={{ border: '3px solid #FFEDD5', backgroundColor: '#FFF7ED', padding: '25px', borderRadius: '30px' }}>
+                                       <h4 style={{ fontSize: '12px', fontWeight: '900', color: '#EA580C', marginBottom: '15px' }}>美食必點與聯絡</h4>
+                                       {day.gourmet?.map((g, gi) => (
+                                         <div key={gi} style={{ marginBottom: '15px' }}>
+                                            <p style={{ fontWeight: '900', fontSize: '16px', color: '#7C2D12' }}>{g.name}</p>
+                                            <p style={{ fontSize: '12px', color: '#9A3412', fontWeight: '600' }}>必點：{g.popularDishes?.join('、')}</p>
+                                            <p style={{ fontSize: '11px', color: '#666', marginTop: '5px' }}>📍 {g.contact?.address}</p>
+                                         </div>
+                                       ))}
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                         ))}
+                    </div>
+
+                    <div className="container mx-auto grid lg:grid-cols-12 gap-16 no-print font-sans text-left">
+                        <div className="lg:col-span-3 space-y-3 font-sans">
+                            <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-6 italic border-l-2 border-red-600 px-4 font-sans text-left">Journey Roadmap</h4>
+                            <div className="grid grid-cols-4 lg:grid-cols-1 gap-2">
+                                {selectedPkg?.itinerary.map((item, idx) => (
+                                    <button key={idx} onClick={() => { setActiveDay(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`text-left p-5 rounded-[2rem] transition-all flex flex-col lg:flex-row items-center border font-sans ${activeDay === idx ? 'bg-gray-900 text-white shadow-2xl border-gray-900 lg:translate-x-3' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}>
+                                        <span className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center lg:mr-4 font-black text-xs mb-2 lg:mb-0 font-sans ${activeDay === idx ? 'bg-red-600 rotate-12' : 'bg-gray-100'}`}>D{item.day}</span>
+                                        <span className="font-black text-[10px] lg:text-sm tracking-tight truncate w-full text-center lg:text-left whitespace-nowrap font-sans">{item.location}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-9 space-y-16">
+                            <div className="bg-white rounded-[4rem] p-10 md:p-16 shadow-2xl border border-gray-50 relative overflow-hidden font-sans">
+                                <div className="absolute top-0 right-0 p-12 opacity-5 text-gray-100 pointer-events-none uppercase font-black text-9xl">D0{dayData.day}</div>
+                                <div className="relative z-10 font-sans text-left">
+                                    <h2 className="text-4xl md:text-7xl font-black text-gray-900 leading-[1.1] mb-6 tracking-tighter uppercase font-sans font-black">{dayData.title}</h2>
+                                    <p className="text-2xl text-gray-500 leading-relaxed font-medium border-l-4 border-gray-100 pl-8 mb-16 font-sans">{dayData.desc}</p>
+
+                                    <div className="mb-20">
+                                       <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10"><Icon name="Navigation" size={32} className="mr-5 text-red-600" /> Guided Roadmap</h4>
+                                       <div className="bg-gray-50 p-10 rounded-[3rem] space-y-10 font-sans">
+                                          {dayData.roadmap?.map((item, i) => (
+                                            <div key={i} className="flex group">
+                                              <div className="flex flex-col items-center mr-8">
+                                                <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200 text-red-600 flex items-center justify-center font-black text-xs shadow-sm group-hover:bg-red-600 group-hover:text-white transition-all font-sans">{item.time}</div>
+                                                {i !== dayData.roadmap.length - 1 && <div className="w-1 h-full bg-gray-100 my-2"></div>}
+                                              </div>
+                                              <div className="pb-4 pt-2 font-black text-xl text-gray-900 font-sans">{item.event}</div>
+                                            </div>
+                                          ))}
+                                       </div>
+                                    </div>
+
+                                    {dayData.gifts && dayData.gifts.length > 0 && (
+                                       <div className="mb-20 pt-10 border-t border-gray-100 text-left">
+                                          <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans"><Icon name="Gift" size={32} className="mr-5 text-pink-600 font-sans" /> Must-Buy Gifts</h4>
+                                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                             {dayData.gifts.map((gift, i) => (
+                                               <button key={i} onClick={() => openGallery(gift, '當地伴手禮')} className="text-left bg-pink-50/40 p-8 rounded-[2.5rem] border border-pink-100 hover:bg-white hover:shadow-2xl transition-all group relative font-sans">
+                                                  <span className="text-[10px] px-3 py-1 bg-pink-200 text-pink-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit font-sans">當地特產</span>
+                                                  <h5 className="font-black text-xl text-pink-900 mb-3 font-sans">{gift.name}</h5>
+                                                  <p className="text-sm text-gray-600 line-clamp-2 font-sans">{gift.desc || "精選當地最具代表性的特色伴手禮選物。"}</p>
+                                               </button>
+                                             ))}
+                                          </div>
+                                       </div>
+                                    )}
+
+                                    <div className="space-y-20 pt-10 border-t border-gray-100 font-sans text-left">
+                                      <div>
+                                        <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans font-sans font-sans font-sans"><Icon name="Utensils" size={32} className="mr-5 text-orange-600 font-sans font-sans" /> Gourmet Discovery</h4>
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-gray-900 font-sans">
+                                          {dayData.gourmet?.map((food, i) => (
+                                            <button key={i} onClick={() => openGallery(food, '名店推薦')} className="text-left bg-orange-50/40 p-8 rounded-[2.5rem] border border-orange-100 hover:bg-white hover:shadow-2xl transition-all group relative font-sans">
+                                               <span className="text-[10px] px-3 py-1 bg-orange-200 text-orange-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit font-sans">名店必吃</span>
+                                               <h5 className="font-black text-xl text-orange-900 mb-3 font-sans font-black">{food.name}</h5>
+                                               {food.contact && (
+                                                 <div className="pt-4 border-t border-orange-100/50 space-y-1 text-[9px] font-black text-gray-400 uppercase tracking-widest font-sans font-sans font-sans">
+                                                    <div className="flex items-center font-sans font-sans"><Icon name="MapPin" size={10} className="mr-1 text-orange-500 font-sans font-sans" /> {food.contact.address.substring(0,15)}...</div>
+                                                    <div className="flex items-center font-sans font-sans"><Icon name="Phone" size={10} className="mr-1 text-orange-500 font-sans font-sans" /> {food.contact.phone}</div>
+                                                 </div>
+                                               )}
+                                               <div className="mt-4 flex items-center text-[10px] font-black text-orange-600 uppercase tracking-widest transition-all">查看詳情 <Icon name="ChevronRight" size={14} className="ml-1 font-sans" /></div>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans font-sans font-sans font-sans"><Icon name="Camera" size={32} className="mr-5 text-blue-600 font-sans font-sans font-sans" /> Spot Explorer</h4>
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 font-sans">
+                                          {dayData.spots?.map((spot, i) => (
+                                            <button key={i} onClick={() => openGallery(spot, '推薦景點')} className="text-left bg-blue-50/40 p-8 rounded-[2.5rem] border border-blue-100 hover:bg-white hover:shadow-2xl transition-all group relative font-sans">
+                                               <span className="text-[10px] px-3 py-1 bg-blue-200 text-blue-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit font-sans font-black">熱門景點</span>
+                                               <h5 className="font-black text-xl text-blue-900 mb-3 font-sans font-black">{spot.name}</h5>
+                                               <div className="mt-4 flex items-center text-[10px] font-black text-blue-600 uppercase tracking-widest font-sans font-sans font-sans">查看大圖 <Icon name="ChevronRight" size={14} className="ml-1 font-sans" /></div>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {dayData.hotel && (
+                                      <div className="pt-20 border-t border-gray-100 mt-20 font-sans text-left">
+                                        <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans font-sans font-sans font-sans"><Icon name="Bed" size={32} className="mr-5 text-red-600 font-sans font-sans font-sans" /> Elite Accommodation</h4>
+                                        <div className="bg-gray-900 text-white rounded-[4rem] overflow-hidden shadow-2xl flex flex-col xl:flex-row border border-gray-800 font-sans font-sans font-sans">
+                                          <div className="xl:w-1/2 h-[500px] font-sans font-sans font-sans font-sans font-sans"><SafeImage src={dayData.hotel.image || selectedPkg.banner} alt={dayData.hotel.name} className="h-full w-full font-sans font-sans font-sans" /></div>
+                                          <div className="xl:w-1/2 p-12 flex flex-col justify-center font-sans font-sans font-sans font-sans font-sans text-left">
+                                            <span className="text-red-500 font-black text-[10px] tracking-[0.5em] uppercase mb-8 block italic underline decoration-red-600/40 decoration-4 underline-offset-8 font-sans font-sans">Tonight's Stay Choice</span>
+                                            <h4 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter leading-tight uppercase font-sans font-sans font-sans font-sans font-black">{dayData.hotel.name}</h4>
+                                            {dayData.hotel.website && dayData.hotel.website !== "#" && (
+                                              <a href={dayData.hotel.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-10 py-6 bg-white text-gray-900 rounded-2xl font-black text-sm hover:bg-red-600 hover:text-white transition-all shadow-xl group uppercase tracking-widest font-sans font-sans font-sans font-sans font-black">造訪飯店官方網站 <Icon name="ExternalLink" size={18} className="ml-4 font-sans font-sans font-sans font-sans" /></a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
-        const travelPackages = [
-            {
-                id: "hokkaido",
-                name: "北海道極致食尚之旅",
-                tag: "老饕推薦",
-                icon: "Sprout",
-                banner: "https://images.unsplash.com/photo-1549114030-4b210875620c?auto=format&fit=crop&w=1200&q=80",
-                description: "北國大地產地直送海鮮，體驗小樽、函館與登別溫泉的極致浪漫。",
-                price: "TWD 55,000 起",
-                itinerary: [
-                    {
-                        day: 1, title: "抵達札幌：北國之味開啟", location: "札幌",
-                        roadmap: [{ time: "11:00", event: "機場專車接機" }, { time: "15:00", event: "大通公園與電視塔導覽" }, { time: "18:00", event: "成吉思汗烤羊肉晚宴" }],
-                        desc: "開啟北海道味蕾冒險。第一天在札幌市中心感受開拓史的氣息。",
-                        gourmet: [
-                            { name: "成吉思汗 だるま", type: "名店必吃", popularDishes: ["特選烤羊肉", "自家製泡菜", "羊肉沾醬麵"], contact: { address: "札幌市中央区南5条西4", phone: "011-552-6013" }, images: ["https://images.unsplash.com/photo-1529692236671-f1f6e9481bfa?auto=format&fit=crop&w=800&q=80"] },
-                            { name: "湯咖哩 Suage+", type: "在地美食", popularDishes: ["知床雞肉湯咖哩"], contact: { address: "札幌市中央区南4条西5", phone: "011-233-2911" } }
-                        ],
-                        spots: [{ name: "札幌電視塔", type: "地標", desc: "俯瞰全城景緻的最佳制高點。" }],
-                        gifts: [{ name: "六花亭 奶油餅乾", type: "名產", desc: "濃郁奶油與蘭姆葡萄的完美結合。" }],
-                        hotel: { name: "JR Tower Hotel Nikko Sapporo", image: "https://images.unsplash.com/photo-1551882547-ff43c63faf76?auto=format&fit=crop&w=1000&q=80", website: "https://www.jrhotels.co.jp/sapporo/", facilities: ["高空浴場", "星級早餐"] }
-                    },
-                    {
-                        day: 2, title: "浪漫小樽：運河與玻璃工藝", location: "小樽",
-                        roadmap: [{ time: "10:00", event: "前往小樽運河歷史散策" }, { time: "14:00", event: "北一硝子工藝賞析" }, { time: "16:00", event: "音樂盒堂體驗" }],
-                        desc: "漫步在石造倉庫與煤油燈營造的浪漫情調中。",
-                        gourmet: [{ name: "政壽司 本店", type: "職人名店", popularDishes: ["大極上握壽司", "花枝麵線壽司"], contact: { address: "小樽市花園1-1-1", phone: "0134-23-0011" }, images: ["https://images.unsplash.com/photo-1534422298391-e4f8c170db76?auto=format&fit=crop&w=800&q=80"] }],
-                        spots: [{ name: "小樽運河", desc: "百年的紅磚倉庫建築群。" }],
-                        gifts: [{ name: "LeTAO 起司蛋糕", desc: "口中瞬間融化的濃郁享受。" }],
-                        hotel: { name: "Kuramure 藏群", image: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1000&q=80", website: "https://www.kuramure.com/en/", facilities: ["私人懷石", "精品溫泉"] }
-                    },
-                    { day: 3, title: "函館夜景：世界三大美景", location: "函館", roadmap: [{ time: "14:00", event: "五稜郭公園" }, { time: "19:00", event: "函館山夜景" }], desc: "蝴蝶灣萬家燈火視覺震撼。", gourmet: [{ name: "Lucky Pierrot", type: "名物", popularDishes: ["中華雞肉漢堡"], contact: { address: "函館市末広町", phone: "0138-xxx" } }], spots: [{ name: "函館山展望台", desc: "全球知名的百萬夜景。" }], gifts: [{ name: "乳酪歐姆蕾", desc: "函館限定口感。" }], hotel: { name: "La Vista Hakodate Bay", image: "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1000&q=80", website: "https://www.hotespa.net/hotels/lahakodate/", facilities: ["露天大浴場", "第一名早餐"] } },
-                    { day: 4, title: "函館朝市與森林散策", location: "函館/大沼", roadmap: [{ time: "08:00", event: "朝市釣烏賊" }, { time: "13:00", event: "大沼國定公園" }], gourmet: [{ name: "きくよ食堂", type: "必吃", popularDishes: ["三色丼"], contact: { address: "函館朝市", phone: "0138-xxx" } }], spots: [{ name: "大沼森林公園", desc: "火山與湖泊編織的景色。" }], gifts: [{ name: "魷魚飯禮盒", desc: "在地特產風味。" }], hotel: { name: "La Vista Hakodate Bay", website: "https://www.hotespa.net/hotels/lahakodate/" } },
-                    { day: 5, title: "登別地獄：震撼地熱地表", location: "登別", roadmap: [{ time: "10:30", event: "前往登別" }, { time: "14:00", event: "地獄谷深度導覽" }], gourmet: [{ name: "味の蔵", type: "特色", popularDishes: ["地獄味噌麵"], contact: { address: "登別温泉町", phone: "0143-xxx" } }], spots: [{ name: "地獄谷", desc: "繚繞硫磺煙霧的奇景。" }], gifts: [{ name: "溫泉入浴劑", desc: "把名湯精華帶回家。" }], hotel: { name: "第一瀧本館", image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1000&q=80", website: "https://takimotokan.jp/", facilities: ["35種泉質"] } },
-                    { day: 6, title: "洞爺湖畔：火山與花火", location: "洞爺湖", roadmap: [{ time: "10:00", event: "纜車登頂" }, { time: "20:30", event: "湖上煙火大會" }], gourmet: [{ name: "望羊蹄", type: "老店", popularDishes: ["手工漢堡排"], contact: { address: "洞爺湖", phone: "0142-xxx" } }], spots: [{ name: "有珠山景觀", desc: "近距離觀測活火山。" }], gifts: [{ name: "若狹薯", desc: "傳承百年和菓子。" }], hotel: { name: "KO NO UTA", image: "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1000&q=80", website: "https://www.konouta.com/", facilities: ["全室湖景"] } },
-                    { day: 7, title: "賦歸：機場最後衝刺", location: "機場", roadmap: [{ time: "10:00", event: "新千歲伴手禮區" }, { time: "14:00", event: "專人協助登機" }], gourmet: [{ name: "拉麵一幻", type: "機場", popularDishes: ["鮮蝦味噌麵"], contact: { address: "航廈3F", phone: "0123-xxx" } }], spots: [{ name: "新千歲空港", desc: "全日本最好逛的機場。" }], gifts: [{ name: "Royce生巧克力", desc: "新千歲限定口味。" }], hotel: null }
-                ]
-            },
-            {
-                id: "classic",
-                name: "經典雙城文化之旅",
-                tag: "最熱門",
-                icon: "Navigation",
-                banner: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
-                description: "東京與關西的完美結合，橫跨日本古今縮影，全程專業中文導覽。",
-                price: "TWD 45,800 起",
-                itinerary: Array.from({length: 7}).map((_, i) => ({
-                    day: i + 1, title: i === 0 ? "東京抵達" : i === 2 ? "前往古都" : `文化巡禮 Day ${i+1}`, location: i < 3 ? "東京" : "京都",
-                    roadmap: [{ time: "09:00", event: "集合出發" }, { time: "18:00", event: "自由時間" }],
-                    desc: "深度體驗繁華與禪意。",
-                    gourmet: [{ name: "名店料理", type: "精選", popularDishes: ["特色定食"], contact: { address: "鬧區中心", phone: "洽導遊" } }],
-                    spots: [{ name: "歷史地標", desc: "建築之美。" }],
-                    gifts: [{ name: "限定禮盒", desc: "精美伴手" }],
-                    hotel: i < 6 ? { name: "高級五星飯店", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80", website: "https://www.hyatt.com/zh-HK/hotel/japan/park-hyatt-tokyo/tyoph" } : null
-                }))
-            },
-            {
-                id: "ski",
-                name: "長野粉雪滑雪盛宴",
-                tag: "冬季限定",
-                icon: "Snowflake",
-                banner: "https://images.unsplash.com/photo-1485594050903-8e8ee7b071a8?auto=format&fit=crop&w=1200&q=80",
-                description: "在世界級雪場體驗極致粉雪與豪華溫泉，配備專業教練教學。",
-                price: "TWD 58,000 起",
-                itinerary: Array.from({length: 7}).map((_, i) => ({
-                    day: i + 1, title: `粉雪挑戰 Day ${i+1}`, location: "長野",
-                    roadmap: [{ time: "09:00", event: "滑雪教學" }, { time: "16:30", event: "名湯放鬆" }],
-                    desc: "滑雪者的夢幻天堂。",
-                    gourmet: [{ name: "信州燒肉", type: "必吃", popularDishes: ["厚切牛舌"], contact: { address: "溫泉街", phone: "預約專線" } }],
-                    spots: [{ name: "白馬展望台", desc: "阿爾卑斯景色。" }],
-                    gifts: [{ name: "蘋果派", desc: "在地盛產" }],
-                    hotel: i < 6 ? { name: "滑雪渡假飯店", image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1000&q=80", website: "https://www.tokyuhotelsjapan.com/global/hakuba-h/" } : null
-                }))
-            },
-            {
-                id: "park",
-                name: "全境主題樂園狂歡",
-                tag: "親子冒險",
-                icon: "Ticket",
-                banner: "https://images.unsplash.com/photo-1542332213-31f87348057f?auto=format&fit=crop&w=1200&q=80",
-                description: "一次收集迪士尼與環球影城，打造完美的童話冒險體驗。",
-                price: "TWD 52,500 起",
-                itinerary: Array.from({length: 7}).map((_, i) => ({
-                    day: i + 1, title: i < 3 ? "迪士尼夢幻" : "USJ 冒險", location: i < 3 ? "東京" : "大阪",
-                    roadmap: [{ time: "08:00", event: "提前入園" }, { time: "19:00", event: "大秀賞析" }],
-                    desc: "夢幻與刺激的結合。",
-                    gourmet: [{ name: "主題餐廳", type: "特色", popularDishes: ["角色餐點"], contact: { address: "園區內", phone: "無" } }],
-                    spots: [{ name: "熱門園區", desc: "沉浸式世界。" }],
-                    gifts: [{ name: "限定髮箍", desc: "必備收藏" }],
-                    hotel: i < 6 ? { name: "官方直營飯店", image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1000&q=80", website: "https://www.tokyodisneyresort.jp/tc/hotel/tdh.html" } : null
-                }))
-            },
-            {
-                id: "kyushu",
-                name: "九州溫泉與鐵道小鎮",
-                tag: "深度慢活",
-                icon: "Palmtree",
-                banner: "https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=1200&q=80",
-                description: "體驗別府地獄、由布院名湯，搭乘九州特色景觀列車遊覽。",
-                price: "TWD 42,000 起",
-                itinerary: Array.from({length: 7}).map((_, i) => ({
-                    day: i + 1, title: `九州慢活 Day ${i+1}`, location: "別府",
-                    roadmap: [{ time: "10:00", event: "鐵道體驗" }, { time: "15:00", event: "名泉足湯" }],
-                    desc: "療癒身心的旅行。",
-                    gourmet: [{ name: "地獄蒸料理", type: "名物", popularDishes: ["海鮮拼盤"], contact: { address: "別府市", phone: "0977-xxx" } }],
-                    spots: [{ name: "金鱗湖", desc: "晨霧迷濛奇景。" }],
-                    gifts: [{ name: "明太子禮盒", desc: "博多特產" }],
-                    hotel: i < 6 ? { name: "精品溫泉渡假村", image: "https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1000&q=80", website: "https://suginoi.orixhotelsandresorts.com/" } : null
-                }))
-            }
-        ];
-
-        // --- 3. App 主組件 ---
+        const BookingView = ({ setCurrentView }) => (
+            <div className="pt-32 pb-24 bg-red-600 min-h-screen flex items-center px-6 font-sans">
+                <div className="container mx-auto font-sans font-sans">
+                    <div className="bg-white rounded-[4rem] overflow-hidden shadow-2xl flex flex-col lg:flex-row text-gray-900 font-sans font-sans">
+                        <div className="lg:w-2/5 bg-gray-900 p-12 text-white flex flex-col justify-between font-sans font-sans font-sans">
+                            <div className="text-left font-sans font-sans"><button onClick={() => setCurrentView('home')} className="flex items-center text-gray-400 hover:text-white mb-12 font-black text-xs uppercase transition-colors font-sans font-sans font-sans font-sans"><Icon name="ArrowLeft" size={18} className="mr-3" /> 返回列表</button><h2 className="text-5xl font-black uppercase font-sans font-sans font-black">即刻預約</h2></div>
+                        </div>
+                        <div className="lg:w-3/5 p-12 bg-white text-left font-sans font-sans">
+                            <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
+                                <div className="grid md:grid-cols-2 gap-10 font-sans font-sans">
+                                    <input type="text" className="w-full px-8 py-5 bg-gray-50 border-none rounded-2xl font-bold text-lg font-sans font-sans font-sans font-sans" placeholder="您的姓名" />
+                                    <input type="tel" className="w-full px-8 py-5 bg-gray-50 border-none rounded-2xl font-bold text-lg font-sans font-sans font-sans font-sans" placeholder="聯絡電話" />
+                                </div>
+                                <button className="w-full py-6 bg-red-600 text-white rounded-2xl font-black text-xl shadow-2xl uppercase tracking-widest font-sans font-sans font-black transition-all hover:bg-red-700">送出預約申請</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
 
         const App = () => {
             const [currentView, setCurrentView] = useState('home'); 
@@ -207,14 +495,11 @@
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
-            // 路由控制
             const navigateToDetail = (pkg) => { setSelectedPkg(pkg); setActiveDay(0); setCurrentView('detail'); window.scrollTo(0,0); };
-            const navigateToHome = () => { setCurrentView('home'); window.scrollTo(0,0); };
             const openGallery = (item, type) => { setGalleryItem({ ...item, type }); setCurrentView('gallery'); window.scrollTo(0,0); };
 
-            // PDF 導出邏輯
             const handleExportPDF = () => {
-                if (typeof window.html2pdf === 'undefined') { alert("系統載入中，請稍候..."); return; }
+                if (typeof window.html2pdf === 'undefined') { alert("PDF 引擎載入中..."); return; }
                 setIsExporting(true);
                 const element = document.getElementById('itinerary-pdf-content');
                 const opt = {
@@ -229,352 +514,56 @@
                 }, 800);
             };
 
-            // --- 視圖子組件 ---
-
-            const Navbar = () => (
-                <nav className={`fixed w-full z-50 transition-all duration-500 no-print ${scrolled || currentView !== 'home' ? 'bg-white/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5 text-white'}`}>
-                    <div className="container mx-auto px-6 flex justify-between items-center">
-                        <div className="flex items-center space-x-2 cursor-pointer group" onClick={navigateToHome}>
-                            <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg transition-all group-hover:rotate-12"><Icon name="Compass" size={22} className="text-white" /></div>
-                            <span className={`text-2xl font-black tracking-tighter ${scrolled || currentView !== 'home' ? 'text-gray-900' : 'text-white'}`}>絕景旅遊</span>
-                        </div>
-                        <div className="flex items-center space-x-8 font-black text-xs uppercase tracking-widest">
-                            <div className="hidden md:flex space-x-10">
-                                <button onClick={navigateToHome} className="hover:text-red-500 transition-colors">首頁探索</button>
-                                <button onClick={() => { setCurrentView('home'); setTimeout(() => document.getElementById('packages')?.scrollIntoView({behavior:'smooth'}), 100); }} className="hover:text-red-500 transition-colors">主題套餐</button>
-                            </div>
-                            <button onClick={() => setIsSidebarOpen(true)} className={`p-2.5 rounded-full transition-all ${scrolled || currentView !== 'home' ? 'bg-gray-100 text-gray-900' : 'bg-white/10 text-white'}`}>
-                                <Icon name="Info" size={24} />
-                            </button>
-                        </div>
-                    </div>
-                </nav>
-            );
-
-            const Sidebar = () => (
-                <div className={`fixed inset-0 z-[100] transition-all duration-500 ${isSidebarOpen ? 'visible opacity-100' : 'invisible opacity-0'}`}>
-                   <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
-                   <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-500 transform ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                      <div className="p-10 h-full flex flex-col font-sans text-gray-900">
-                         <div className="flex justify-between items-center mb-12">
-                            <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">公司資訊</h3>
-                            <button onClick={() => setIsSidebarOpen(false)} className="p-3 bg-gray-100 rounded-full hover:bg-red-600 hover:text-white transition-all"><Icon name="X" size={24} /></button>
-                         </div>
-                         <div className="space-y-10 flex-1 overflow-y-auto pr-4 scrollbar-hide">
-                            <section className="space-y-4">
-                               <h4 className="text-sm font-black uppercase text-red-600 tracking-[0.3em]">聯絡窗口</h4>
-                               <div className="space-y-4 font-bold text-gray-700">
-                                  <p className="flex items-center"><Icon name="Phone" size={18} className="mr-4 text-red-500" /> {agencyInfo.phone}</p>
-                                  <p className="flex items-center"><Icon name="Mail" size={18} className="mr-4 text-red-500" /> {agencyInfo.email}</p>
-                                  <p className="flex items-start"><Icon name="MapPin" size={18} className="mr-4 text-red-500 mt-1" /> {agencyInfo.address}</p>
-                               </div>
-                            </section>
-                            <section className="space-y-6">
-                               <h4 className="text-sm font-black uppercase text-red-600 tracking-[0.3em]">常見問題 FAQ</h4>
-                               {agencyInfo.faq.map((f, i) => (
-                                 <div key={i} className="p-6 bg-gray-50 rounded-3xl space-y-2"><p className="font-black text-gray-900 leading-tight">Q: {f.q}</p><p className="text-sm text-gray-500 font-medium">{f.a}</p></div>
-                               ))}
-                            </section>
-                         </div>
-                         <div className="pt-8 border-t border-gray-100">
-                            <button onClick={() => { setIsSidebarOpen(false); setCurrentView('booking'); }} className="w-full py-5 bg-red-600 text-white rounded-2xl font-black shadow-xl hover:bg-red-700 transition-all uppercase tracking-widest"><Icon name="MessageCircle" className="mr-3" /> 線上專員即時預約</button>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-            );
-
-            const HomeView = () => (
-                <div className="animate-fade-in font-sans">
-                    <section className="relative h-[85vh] flex items-center justify-center bg-gray-900 overflow-hidden no-print">
-                        <div className="absolute inset-0 z-0">
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-gray-900 z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80" className="w-full h-full object-cover" alt="Japan" />
-                        </div>
-                        <div className="relative z-20 text-center px-6 max-w-5xl text-white">
-                            <div className="inline-block bg-red-600 px-6 py-2 rounded-full text-[10px] font-black mb-8 tracking-[0.3em] shadow-2xl uppercase">Expert Led 7-Day Journeys</div>
-                            <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tighter uppercase font-sans">日本，<br/><span className="text-red-500 underline decoration-4 underline-offset-8">不只是旅行</span></h1>
-                            <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto font-medium leading-relaxed font-sans font-sans">整合官方飯店連結、必吃餐點資訊與 PDF 一鍵導出服務。打造您的極致回憶。</p>
-                            <div className="flex justify-center"><div className="animate-bounce opacity-50"><Icon name="ChevronDown" size={32} /></div></div>
-                        </div>
-                    </section>
-                    <section id="packages" className="py-32 bg-gray-50 px-6 no-print text-gray-900">
-                        <div className="container mx-auto text-center mb-20 font-black uppercase text-4xl">嚴選五大主題套餐</div>
-                        <div className="container mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-                            {travelPackages.map((pkg) => (
-                                <div key={pkg.id} onClick={() => navigateToDetail(pkg)} className="group cursor-pointer bg-white rounded-[3rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4">
-                                    <SafeImage src={pkg.banner} alt={pkg.name} className="h-64" />
-                                    <div className="p-10 relative font-sans text-gray-900">
-                                        <div className="absolute -top-8 left-8 z-20"><span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-red-600 text-white shadow-sm font-sans">{pkg.tag}</span></div>
-                                        <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm"><Icon name={pkg.icon} /></div>
-                                        <h3 className="text-2xl font-black mb-4 uppercase">{pkg.name}</h3>
-                                        <p className="text-gray-500 text-sm mb-8 leading-relaxed line-clamp-2 font-medium">{pkg.description}</p>
-                                        <div className="flex justify-between items-center border-t border-gray-100 pt-8 font-black">
-                                            <span className="text-red-600 font-sans">{pkg.price}</span>
-                                            <span className="text-xs uppercase tracking-widest text-gray-400 group-hover:text-red-600 font-sans">查看詳情 <Icon name="ChevronRight" size={14} className="inline ml-1" /></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-            );
-
-            const GalleryView = () => (
-                <div className="pt-32 min-h-screen bg-gray-950 text-white animate-fade-in pb-24 px-6 font-sans">
-                    <div className="container mx-auto py-12">
-                        <button onClick={() => setCurrentView('detail')} className="flex items-center text-gray-400 hover:text-white mb-12 font-black text-xs uppercase tracking-widest transition-all"><Icon name="ArrowLeft" size={20} className="mr-3" /> 返回行程表</button>
-                        <div className="grid lg:grid-cols-2 gap-16 items-start text-gray-900 text-white">
-                            <div className="space-y-12">
-                                <div>
-                                    <span className="inline-block px-4 py-1.5 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest mb-6">{galleryItem?.type || "精選資訊"}</span>
-                                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-8 text-white">{galleryItem?.name}</h2>
-                                    <p className="text-xl text-gray-400 leading-relaxed font-medium mb-12">{galleryItem?.desc || "體驗在地精華與細膩文化。"}</p>
-                                    {galleryItem?.contact && (
-                                        <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] space-y-6">
-                                           <h4 className="text-xs font-black uppercase tracking-[0.4em] text-red-500 font-sans">聯絡與導航資訊</h4>
-                                           <div className="flex items-start space-x-4 text-sm font-bold text-gray-300"><Icon name="MapPin" size={22} className="text-gray-500" /><p>{galleryItem.contact.address}</p></div>
-                                           <div className="flex items-center space-x-4 text-sm font-bold text-gray-300"><Icon name="Phone" size={22} className="text-gray-500" /><p>{galleryItem.contact.phone}</p></div>
-                                        </div>
-                                    )}
-                                </div>
-                                {galleryItem?.popularDishes && (
-                                    <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem]">
-                                       <h4 className="flex items-center text-xl font-black uppercase tracking-widest mb-8 text-orange-500"><Icon name="ChefHat" className="mr-3" /> 人氣必點餐點</h4>
-                                       <div className="space-y-4 font-bold text-lg text-gray-200">
-                                          {galleryItem.popularDishes.map((dish, i) => (
-                                            <div key={i} className="flex items-center space-x-4"><div className="w-2 h-2 rounded-full bg-orange-500"></div><span>{dish}</span></div>
-                                          ))}
-                                       </div>
-                                    </div>
-                                )}
-                                <button className="flex items-center space-x-4 p-6 bg-red-600 text-white rounded-[2rem] w-full hover:bg-red-700 transition-all font-black uppercase tracking-widest font-sans"><Icon name="Instagram" /><span>查看 Instagram 網友實拍</span></button>
-                            </div>
-                            <div className="grid grid-cols-1 gap-6">
-                               {galleryItem?.images?.map((img, i) => (
-                                 <div key={i} className="rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 aspect-video"><img src={img} className="w-full h-full object-cover" alt="Ref" /></div>
-                               ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            const DetailView = () => {
-                const dayData = selectedPkg?.itinerary?.[activeDay];
-                if (!dayData) return null;
-
-                return (
-                    <div className="pt-24 min-h-screen bg-white animate-fade-in pb-24 font-sans px-6 text-gray-900">
-                        
-                        {/* --- PDF HIDDEN --- */}
-                        <div id="itinerary-pdf-content" style={{ position: 'absolute', top: 0, left: '-9999px', width: '800px', backgroundColor: '#fff', color: '#000', padding: '40px' }}>
-                             <div style={{ borderBottom: '10px solid #DC2626', paddingBottom: '30px', marginBottom: '40px', textAlign: 'center' }}>
-                                <h1 style={{ fontSize: '48px', fontWeight: '900' }}>絕景旅遊 | 行程手冊</h1>
-                                <p style={{ fontSize: '20px', color: '#666', fontWeight: 'bold' }}>{selectedPkg?.name} · 完整攻略</p>
-                             </div>
-                             {selectedPkg?.itinerary.map((day, idx) => (
-                               <div key={idx} style={{ pageBreakInside: 'avoid', marginBottom: '50px', borderBottom: '2px solid #f0f0f0', paddingBottom: '50px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '30px', marginBottom: '30px' }}>
-                                     <span style={{ fontSize: '64px', fontWeight: '900', color: '#DC2626' }}>D{day.day}</span>
-                                     <h3 style={{ fontSize: '36px', fontWeight: '900' }}>{day.title}</h3>
-                                  </div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '40px' }}>
-                                     <div style={{ backgroundColor: '#fdfdfd', border: '1px solid #eee', padding: '30px', borderRadius: '30px' }}>
-                                        <h4 style={{ fontSize: '14px', fontWeight: '900', borderBottom: '2px solid #DC2626', paddingBottom: '5px', marginBottom: '25px' }}>導覽時間軸</h4>
-                                        {day.roadmap?.map((r, ri) => (
-                                          <div key={ri} style={{ display: 'flex', marginBottom: '20px' }}><span style={{ fontWeight: '900', width: '80px', color: '#DC2626', fontSize: '18px' }}>{r.time}</span><span style={{ fontWeight: '700', flex: 1, fontSize: '18px' }}>{r.event}</span></div>
-                                        ))}
-                                     </div>
-                                     <div>
-                                        {day.hotel && <div style={{ backgroundColor: '#111', color: '#fff', padding: '25px', borderRadius: '30px', marginBottom: '30px' }}><h4 style={{ fontSize: '11px', fontWeight: '900', color: '#DC2626', marginBottom: '10px' }}>下榻飯店</h4><p style={{ fontSize: '20px', fontWeight: '900' }}>{day.hotel.name}</p></div>}
-                                        <div style={{ border: '3px solid #FFEDD5', backgroundColor: '#FFF7ED', padding: '25px', borderRadius: '30px' }}>
-                                           <h4 style={{ fontSize: '12px', fontWeight: '900', color: '#EA580C', marginBottom: '15px' }}>必吃推薦</h4>
-                                           {day.gourmet?.map((g, gi) => (
-                                             <div key={gi} style={{ marginBottom: '15px' }}><p style={{ fontWeight: '900', fontSize: '16px' }}>{g.name}</p><p style={{ fontSize: '11px', color: '#666' }}>📍 {g.contact?.address}</p></div>
-                                           ))}
-                                        </div>
-                                     </div>
-                                  </div>
-                               </div>
-                             ))}
-                        </div>
-
-                        <div className="container mx-auto py-8 flex flex-col md:flex-row md:items-center justify-between border-b border-gray-100 mb-12 gap-4 no-print text-gray-900 font-sans">
-                            <button onClick={() => setCurrentView('home')} className="flex items-center text-gray-500 hover:text-red-600 transition-all font-black text-xs uppercase tracking-widest"><Icon name="ArrowLeft" size={18} className="mr-3" /> 返回列表</button>
-                            <div className="flex items-center space-x-4">
-                                <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center px-6 py-3 bg-gray-900 text-white rounded-full font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg active:scale-95 disabled:opacity-50 font-sans">
-                                    {isExporting ? <Icon name="Loader2" className="mr-2 animate-spin" size={16} /> : <Icon name="FileDown" size={16} className="mr-2" />}
-                                    導出 PDF 行程手冊
-                                </button>
-                                <div className="hidden lg:flex items-center space-x-3"><span className="px-3 py-1 bg-red-600 text-white text-[10px] font-black uppercase rounded-full">Guide Mode</span><span className="text-gray-900 font-black text-sm uppercase tracking-tight">{selectedPkg?.name}</span></div>
-                            </div>
-                        </div>
-
-                        <div className="container mx-auto grid lg:grid-cols-12 gap-16 no-print font-sans">
-                            <div className="lg:col-span-3 space-y-3 font-sans">
-                                <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-6 italic border-l-2 border-red-600 px-4">Journey Roadmap</h4>
-                                <div className="grid grid-cols-4 lg:grid-cols-1 gap-2">
-                                    {selectedPkg?.itinerary.map((item, idx) => (
-                                        <button key={idx} onClick={() => { setActiveDay(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`text-left p-5 rounded-[2rem] transition-all flex flex-col lg:flex-row items-center border ${activeDay === idx ? 'bg-gray-900 text-white shadow-2xl border-gray-900 lg:translate-x-3' : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'}`}>
-                                            <span className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center lg:mr-4 font-black text-xs mb-2 lg:mb-0 ${activeDay === idx ? 'bg-red-600 rotate-12' : 'bg-gray-100'}`}>D{item.day}</span>
-                                            <span className="font-black text-[10px] lg:text-sm tracking-tight truncate w-full text-center lg:text-left whitespace-nowrap">{item.location}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="lg:col-span-9 space-y-16">
-                                <div className="bg-white rounded-[4rem] p-10 md:p-16 shadow-2xl border border-gray-50 relative overflow-hidden font-sans">
-                                    <div className="absolute top-0 right-0 p-12 opacity-5 text-gray-100 pointer-events-none uppercase font-black text-9xl">D0{dayData.day}</div>
-                                    <div className="relative z-10 font-sans">
-                                        <h2 className="text-4xl md:text-7xl font-black text-gray-900 leading-[1.1] mb-6 tracking-tighter uppercase">{dayData.title}</h2>
-                                        <p className="text-2xl text-gray-500 leading-relaxed font-medium border-l-4 border-gray-100 pl-8 mb-16">{dayData.desc}</p>
-
-                                        {/* Roadmap */}
-                                        <div className="mb-20">
-                                           <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10"><Icon name="Navigation" size={32} className="mr-5 text-red-600" /> Guided Roadmap</h4>
-                                           <div className="bg-gray-50 p-10 rounded-[3rem] space-y-10 font-sans font-sans">
-                                              {dayData.roadmap?.map((item, i) => (
-                                                <div key={i} className="flex group">
-                                                  <div className="flex flex-col items-center mr-8">
-                                                    <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200 text-red-600 flex items-center justify-center font-black text-xs shadow-sm group-hover:bg-red-600 group-hover:text-white transition-all font-sans">{item.time}</div>
-                                                    {i !== dayData.roadmap.length - 1 && <div className="w-1 h-full bg-gray-100 group-hover:bg-red-100 transition-colors my-2"></div>}
-                                                  </div>
-                                                  <div className="pb-4 pt-2 font-black text-xl text-gray-900">{item.event}</div>
-                                                </div>
-                                              ))}
-                                           </div>
-                                        </div>
-
-                                        {/* Gifts */}
-                                        {dayData.gifts && dayData.gifts.length > 0 && (
-                                           <div className="mb-20 pt-10 border-t border-gray-100">
-                                              <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans"><Icon name="Gift" size={32} className="mr-5 text-pink-600" /> Must-Buy Gifts</h4>
-                                              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                                 {dayData.gifts.map((gift, i) => (
-                                                   <button key={i} onClick={() => openGallery(gift, '當地伴手禮')} className="text-left bg-pink-50/40 p-8 rounded-[2.5rem] border border-pink-100 hover:bg-white hover:shadow-2xl transition-all group relative">
-                                                      <span className="text-[10px] px-3 py-1 bg-pink-200 text-pink-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit">精選伴手</span>
-                                                      <h5 className="font-black text-xl text-pink-900 mb-3 font-sans">{gift.name}</h5>
-                                                      <p className="text-sm text-gray-600 line-clamp-2">{gift.desc || "精選當地最具代表性的伴手禮。"}</p>
-                                                   </button>
-                                                 ))}
-                                              </div>
-                                           </div>
-                                        )}
-
-                                        {/* Gourmet & Spots */}
-                                        <div className="space-y-20 pt-10 border-t border-gray-100 font-sans">
-                                          <div>
-                                            <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans"><Icon name="Utensils" size={32} className="mr-5 text-orange-600" /> Gourmet Discovery</h4>
-                                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-gray-900 font-sans font-sans">
-                                              {dayData.gourmet?.map((food, i) => (
-                                                <button key={i} onClick={() => openGallery(food, '名店推薦')} className="text-left bg-orange-50/40 p-8 rounded-[2.5rem] border border-orange-100 hover:bg-white hover:shadow-2xl transition-all group relative">
-                                                   <span className="text-[10px] px-3 py-1 bg-orange-200 text-orange-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit">名店必吃</span>
-                                                   <h5 className="font-black text-xl text-orange-900 mb-3 font-sans">{food.name}</h5>
-                                                   {food.contact && (
-                                                     <div className="pt-4 border-t border-orange-100/50 space-y-1 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                                        <div className="flex items-center"><Icon name="MapPin" size={10} className="mr-1 text-orange-500" /> {food.contact.address.substring(0,15)}...</div>
-                                                        <div className="flex items-center"><Icon name="Phone" size={10} className="mr-1 text-orange-500" /> {food.contact.phone}</div>
-                                                     </div>
-                                                   )}
-                                                   <div className="mt-4 flex items-center text-[10px] font-black text-orange-600 uppercase tracking-widest">查看詳情 <Icon name="ChevronRight" size={14} className="ml-1" /></div>
-                                                </button>
-                                              ))}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans font-sans"><Icon name="Camera" size={32} className="mr-5 text-blue-600" /> Spot Explorer</h4>
-                                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                              {dayData.spots?.map((spot, i) => (
-                                                <button key={i} onClick={() => openGallery(spot, '推薦景點')} className="text-left bg-blue-50/40 p-8 rounded-[2.5rem] border border-blue-100 hover:bg-white hover:shadow-2xl transition-all group relative">
-                                                   <span className="text-[10px] px-3 py-1 bg-blue-200 text-blue-900 rounded-full font-black uppercase tracking-widest mb-4 block w-fit font-sans">熱門景點</span>
-                                                   <h5 className="font-black text-xl text-blue-900 mb-3 font-sans">{spot.name}</h5>
-                                                   <div className="mt-4 flex items-center text-[10px] font-black text-blue-600 uppercase tracking-widest">查看大圖 <Icon name="ChevronRight" size={14} className="ml-1" /></div>
-                                                </button>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        {/* Hotel (官網連結修復) */}
-                                        {dayData.hotel && (
-                                          <div className="pt-20 border-t border-gray-100 mt-20">
-                                            <h4 className="font-black text-gray-900 flex items-center text-3xl uppercase tracking-tighter mb-10 font-sans"><Icon name="Bed" size={32} className="mr-5 text-red-600" /> Elite Accommodation</h4>
-                                            <div className="bg-gray-900 text-white rounded-[4rem] overflow-hidden shadow-2xl flex flex-col xl:flex-row border border-gray-800">
-                                              <div className="xl:w-1/2 h-[500px]"><SafeImage src={dayData.hotel.image || selectedPkg.banner} alt={dayData.hotel.name} className="h-full w-full font-sans" /></div>
-                                              <div className="xl:w-1/2 p-12 flex flex-col justify-center">
-                                                <span className="text-red-500 font-black text-[10px] tracking-[0.5em] uppercase mb-8 block italic underline decoration-red-600/40 decoration-4 underline-offset-8">Featured Stay</span>
-                                                <h4 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter leading-tight uppercase font-sans">{dayData.hotel.name}</h4>
-                                                <div className="flex flex-wrap gap-4 mb-10 font-black text-[10px] uppercase tracking-widest font-sans">
-                                                  {dayData.hotel.facilities?.map((fac, i) => (
-                                                    <div key={i} className="flex items-center bg-white/5 border border-white/10 px-5 py-3 rounded-2xl text-gray-300"><span className="mr-3 text-red-500"><Icon name="CheckCircle2" size={14} /></span> {fac}</div>
-                                                  ))}
-                                                </div>
-                                                {dayData.hotel.website && dayData.hotel.website !== "#" && (
-                                                  <a href={dayData.hotel.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-10 py-6 bg-white text-gray-900 rounded-2xl font-black text-sm hover:bg-red-600 hover:text-white transition-all shadow-xl group uppercase tracking-widest font-black">造訪飯店官方網站 <Icon name="ExternalLink" size={18} className="ml-4 font-sans" /></a>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            const BookingView = () => (
-                <div className="pt-32 pb-24 bg-red-600 min-h-screen flex items-center px-6 font-sans">
-                    <div className="container mx-auto font-sans">
-                        <div className="bg-white rounded-[4rem] overflow-hidden shadow-2xl flex flex-col lg:flex-row text-gray-900">
-                            <div className="lg:w-2/5 bg-gray-900 p-12 text-white flex flex-col justify-between font-sans">
-                                <div><button onClick={() => setCurrentView('home')} className="flex items-center text-gray-400 hover:text-white mb-12 font-black text-xs uppercase transition-colors"><Icon name="ArrowLeft" size={18} className="mr-3" /> 返回列表</button><h2 className="text-5xl font-black uppercase font-sans">即刻預約</h2></div>
-                            </div>
-                            <div className="lg:w-3/5 p-12 bg-white">
-                                <form className="space-y-10" onSubmit={(e) => e.preventDefault()}>
-                                    <div className="grid md:grid-cols-2 gap-10">
-                                        <input type="text" className="w-full px-8 py-5 bg-gray-50 border-none rounded-2xl font-bold text-lg font-sans" placeholder="姓名" />
-                                        <input type="tel" className="w-full px-8 py-5 bg-gray-50 border-none rounded-2xl font-bold text-lg font-sans" placeholder="電話" />
-                                    </div>
-                                    <button className="w-full py-6 bg-red-600 text-white rounded-2xl font-black text-xl shadow-2xl uppercase tracking-widest transition-all hover:bg-red-700">送出預約申請</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-
             const renderView = () => {
                 switch(currentView) {
-                    case 'detail': return <DetailView />;
-                    case 'gallery': return <GalleryView />;
-                    case 'booking': return <BookingView />;
-                    default: return <HomeView />;
+                    case 'detail': 
+                        return <DetailView 
+                                    selectedPkg={selectedPkg} 
+                                    activeDay={activeDay} 
+                                    setActiveDay={setActiveDay} 
+                                    setCurrentView={setCurrentView} 
+                                    openGallery={openGallery} 
+                                    handleExportPDF={handleExportPDF} 
+                                    isExporting={isExporting} 
+                                />;
+                    case 'gallery': 
+                        return <GalleryView 
+                                    galleryItem={galleryItem} 
+                                    setCurrentView={setCurrentView} 
+                                />;
+                    case 'booking': 
+                        return <BookingView 
+                                    setCurrentView={setCurrentView} 
+                                />;
+                    default: 
+                        return <HomeView navigateToDetail={navigateToDetail} />;
                 }
             };
 
             return (
-                <div className="min-h-screen bg-white text-gray-900 selection:bg-red-100 selection:text-red-600 font-sans">
-                    <Navbar />
-                    <Sidebar />
+                <div className="min-h-screen bg-white text-gray-900 selection:bg-red-100 font-sans font-sans">
+                    <Navbar 
+                        setCurrentView={setCurrentView} 
+                        scrolled={scrolled} 
+                        currentView={currentView} 
+                        setIsSidebarOpen={setIsSidebarOpen} 
+                    />
+                    <Sidebar 
+                        isSidebarOpen={isSidebarOpen} 
+                        setIsSidebarOpen={setIsSidebarOpen} 
+                        setCurrentView={setCurrentView} 
+                    />
                     {renderView()}
-                    <footer className="bg-gray-900 text-white py-24 text-center no-print">
-                        <div className="container mx-auto px-6 font-sans">
-                           <div className="inline-flex items-center space-x-3 mb-12 border border-white/10 p-4 rounded-3xl">
-                              <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg"><Icon name="Navigation" size={20} className="text-white" /></div>
-                              <span className="text-xl font-black tracking-tighter uppercase">Superb Travel</span>
+                    <footer className="bg-gray-900 text-white py-24 text-center no-print font-sans font-sans font-sans">
+                        <div className="container mx-auto px-6 font-sans font-sans">
+                           <div className="inline-flex items-center space-x-3 mb-12 border border-white/10 p-4 rounded-3xl font-sans font-sans font-sans">
+                              <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center font-sans font-sans font-sans font-sans"><Icon name="Navigation" size={20} className="text-white" /></div>
+                              <span className="text-xl font-black tracking-tighter uppercase font-sans font-sans font-black">Superb Travel</span>
                            </div>
-                           <div className="flex flex-col md:flex-row justify-center items-center gap-10 text-[10px] font-black uppercase tracking-[0.4em] opacity-50 mb-12 font-sans">
-                              <p>地址: {agencyInfo.address}</p>
-                              <p>電話: {agencyInfo.phone}</p>
-                              <p>EMAIL: {agencyInfo.email}</p>
+                           <div className="flex flex-col md:flex-row justify-center items-center gap-10 text-[10px] font-black uppercase tracking-[0.4em] opacity-50 mb-12 font-sans font-sans font-sans">
+                              <p>地址: {agencyInfo.address}</p><p>電話: {agencyInfo.phone}</p><p>EMAIL: {agencyInfo.email}</p>
                            </div>
-                           <p className="text-[10px] font-bold uppercase tracking-[0.5em] opacity-20 font-sans font-sans">© 2025 SUPERB TRAVEL CO., LTD. ALL RIGHTS RESERVED.</p>
+                           <p className="text-[10px] font-bold uppercase tracking-[0.5em] opacity-20 font-sans font-sans font-sans font-sans font-sans">© 2025 SUPERB TRAVEL CO., LTD. ALL RIGHTS RESERVED.</p>
                         </div>
                     </footer>
                 </div>
